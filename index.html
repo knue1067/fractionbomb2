@@ -211,6 +211,8 @@ setupClickHandlers();
     }, 1000);
   } else {if (correct === 'equal') {
     feedback.textContent = "⏱ 분수가 같아 해제하지 마세요! 기다리세요.";
+    const scoreEl = document.getElementById("score-display");
+    scoreEl.textContent = parseInt(scoreEl.textContent) + 1;
   } else {
     lives--;
     document.getElementById("life-display").textContent = lives;
