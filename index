@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>분수 폭탄 해제 작전</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: radial-gradient(#5c5c5c, #1c1c1c);
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 32px;
+      color: #ff4444;
+      text-shadow: 0 0 10px #ff0000;
+    }
+    .fraction {
+      font-size: 40px;
+      margin: 10px;
+      background: #fff;
+      color: #000;
+      width: 80px;
+      margin: auto;
+      border-radius: 10px;
+    }
+    .drop-zone {
+      display: inline-block;
+      width: 60px;
+      height: 40px;
+      border: 2px dashed #fff;
+      margin: 5px;
+      vertical-align: middle;
+      font-size: 24px;
+      line-height: 40px;
+      background: #000;
+      color: #0f0;
+    }
+    .block {
+      position: relative;
+      display: inline-block;
+      padding: 10px;
+      margin: 5px;
+      background: #222;
+      color: #fff;
+      border-radius: 8px;
+      cursor: grab;
+      font-size: 22px;
+      border: 2px solid #fff;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #ff4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #ff0000;
+    }
+    #game-area {
+      position: relative;
+      margin-top: 30px;
+      background: #2b2b2b;
+      padding: 30px;
+      border-radius: 20px;
+      border: 4px solid #ff4444;
+      box-shadow: inset 0 0 10px #ff0000;
+    }
+    #feedback {
+      font-size: 20px;
+      margin-top: 20px;
+      color: #ffcc00;
+      min-height: 30px;
+    }
+    #options {
+      margin-top: 30px;
+    }
+    #retry-area {
+    }
+
+    #game-area *,
+    #options .block,
+    .drop-zone {
+      user-select: none;
+      pointer-events: auto;
+      position: relative;
+    }
+      margin-top: 30px;
+    }
+  @keyframes boss-flash {
+  0% { box-shadow: 0 0 10px #ff0000; }
+  50% { box-shadow: 0 0 30px #ff0000; }
+  100% { box-shadow: 0 0 10px #ff0000; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.boss-stage {
+  animation: boss-flash 1s infinite;
+}
+
+#feedback.boss-alert {
+  font-size: 24px;
+  animation: shake 0.5s infinite;
+  color: #ff3333;
+}
+.selected { outline: 2px solid yellow; }
+</style>
+  
+</head>
+<body>
+  <h1>💣 분수 폭탄 해제 작전 💣</h1>
+  <p>분수를 공통분모로 변환한 후, 더 큰 분수의 "폭탄 해제" 버튼을 눌러 진짜 폭탄을 해제하세요!</p>
+
+  
+    
+
+  <div id="game-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+  <div style="display: flex; flex-direction: column; align-items: center;">
+    <div style="padding: 10px; background: #111; color: #0f0; border-radius: 10px; font-size: 20px;">⏳ 남은 시간: <span id="timer-display">--</span>s</div>
+    <div style="padding: 10px; background: #111; color: #0ff; border-radius: 10px; font-size: 20px; margin-top: 10px;">💣 해제한 폭탄 수: <span id="score-display">0</span></div>
+  </div>
+  <div style="display: flex; justify-content: start; gap: 60px; align-items: flex-start;">
+    <div style="display: flex; gap: 40px;">
+      <div style="background-color: #006400; padding: 20px; border-radius: 15px;">
+        <div>
+          <div class="fraction" id="fraction1_num">1</div>
+          <hr style="width:60px; height: 3px; margin:2px auto; background-color: white; border: none;">
+          <div class="fraction" id="fraction1_den">2</div>
+          <div class="drop-zone" id="f1_num" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+          <hr style="width:60px; height: 3px; margin:2px auto; background-color: white; border: none;">
+          <div class="drop-zone" id="f1_den" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+          
+        </div>
+      </div>
+      <div style="background-color: #FFD700; padding: 20px; border-radius: 15px;">
+        <div class="fraction" id="fraction2_num">1</div>
+        <hr style="width:60px; height: 3px; margin:2px auto; background-color: white; border: none;">
+        <div class="fraction" id="fraction2_den">3</div>
+        <div class="drop-zone" id="f2_num" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+        <hr style="width:60px; height: 3px; margin:2px auto; background-color: white; border: none;">
+        <div class="drop-zone" id="f2_den" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+        
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+  <div id="options" style="display: flex; flex-wrap: wrap; width: 200px; justify-content: center;"></div>
+  <div id="button-area" style="min-height: 100px; display: flex; flex-direction: column; gap: 10px; justify-content: center; align-items: center; margin-top: 10px;">
+    <button id="btn-f1" style="background-color: #00cc00; color: white; display: none;" onclick="verifyLarger('f1')">💥 폭탄 해제</button>
+    <button id="btn-f2" style="background-color: #FFD700; color: black; display: none;" onclick="verifyLarger('f2')">💥 폭탄 해제</button>
+  </div>
+</div>
+  </div>
+    <div id="feedback">⚠️ 모든 칸에 숫자를 넣어주세요!</div>
+    <div id="retry-area"></div>
+  </div>
+<script>
+var gameOver = false;
+
+function allowDrop(ev) { ev.preventDefault(); }
+function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+function drop(ev) {
+  ev.preventDefault();
+  const data = ev.dataTransfer.getData("text");
+  const block = document.getElementById(data);
+  if (!block) return;
+  ev.target.textContent = block.getAttribute("data-value");
+  ev.target.setAttribute("data-value", block.getAttribute("data-value"));
+  checkFilledInputs();
+}
+
+function verifyLarger(choice) {
+  if (gameOver) return;
+  const getValue = id => {
+    const el = document.getElementById(id);
+    return el ? parseInt(el.getAttribute("data-value")) : NaN;
+  };
+  const f1n = getValue("f1_num"), f1d = getValue("f1_den");
+  const f2n = getValue("f2_num"), f2d = getValue("f2_den");
+  const feedback = document.getElementById("feedback");
+  if ([f1n, f1d, f2n, f2d].some(isNaN)) {
+    feedback.textContent = "⚠️ 모든 칸에 숫자를 넣어주세요!";
+    return;
+  }
+  const f1Value = f1n / f1d;
+  const f2Value = f2n / f2d;
+  const correct = f1Value > f2Value ? "f1" : f2Value > f1Value ? "f2" : "equal";
+  if (choice === correct) {
+    feedback.textContent = "🎉 정답입니다! 다음 문제로 넘어갑니다.";
+    const scoreEl = document.getElementById("score-display");
+    scoreEl.textContent = parseInt(scoreEl.textContent) + 1;
+    setTimeout(() => {
+      gameOver = false;
+      feedback.textContent = "⚠️ 모든 칸에 숫자를 넣어주세요!";
+      document.getElementById("btn-f1").style.display = "none";
+      document.getElementById("btn-f2").style.display = "none";
+      clearDropZones();
+      startTimer();
+      generateNewFractions();
+      createOptions();
+setupClickHandlers();
+    }, 1000);
+  } else {
+    feedback.textContent = correct === 'equal' ? "⏱ 분수가 같아 해제하지 마세요! 기다리세요." : "💥 해제 실패! 다시 생각해보세요.";
+  }
+}
+
+function clearDropZones() {
+  ["f1_num", "f1_den", "f2_num", "f2_den"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.textContent = "";
+      el.removeAttribute("data-value");
+    }
+  });
+}
+
+function checkFilledInputs() {
+  const ids = ["f1_num", "f1_den", "f2_num", "f2_den"];
+  const expectedIds = ["fraction1_num", "fraction1_den", "fraction2_num", "fraction2_den"];
+  const getNumeric = id => parseInt(document.getElementById(id).textContent);
+  const [n1, d1, n2, d2] = expectedIds.map(getNumeric);
+  const gcd = (x, y) => y === 0 ? x : gcd(y, x % y);
+  const lcm = (a, b) => (a * b) / gcd(a, b);
+  const lcmVal = lcm(d1, d2);
+  const correctVals = [n1 * (lcmVal / d1), lcmVal, n2 * (lcmVal / d2), lcmVal];
+
+  const filled = ids.every(id => {
+    const el = document.getElementById(id);
+    return el && el.getAttribute("data-value");
+  });
+
+  const correct = ids.every((id, i) => {
+    const el = document.getElementById(id);
+    return el && el.getAttribute("data-value") === String(correctVals[i]);
+  });
+
+  const feedback = document.getElementById("feedback");
+  const btn1 = document.getElementById("btn-f1");
+  const btn2 = document.getElementById("btn-f2");
+
+  if (filled && correct) {
+    btn1.style.display = "inline-block";
+    btn2.style.display = "inline-block";
+    feedback.textContent = "";
+  } else if (filled && !correct) {
+    btn1.style.display = "none";
+    btn2.style.display = "none";
+    feedback.textContent = "❌ 숫자를 다시 넣어보세요!";
+  } else {
+    btn1.style.display = "none";
+    btn2.style.display = "none";
+    feedback.textContent = "⚠️ 모든 칸에 숫자를 넣어주세요!";
+  }
+}
+
+function createOptions() {
+  const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+  const lcm = (a, b) => (a * b) / gcd(a, b);
+  const den1 = parseInt(document.getElementById("fraction1_den").textContent);
+  const den2 = parseInt(document.getElementById("fraction2_den").textContent);
+  const num1 = parseInt(document.getElementById("fraction1_num").textContent);
+  const num2 = parseInt(document.getElementById("fraction2_num").textContent);
+  const targetDen = lcm(den1, den2);
+  const correctNums = [
+    num1 * (targetDen / den1),
+    num2 * (targetDen / den2),
+    targetDen
+  ];
+  const options = [...correctNums];
+  while (options.length < 6) {
+    const n = Math.floor(Math.random() * (targetDen + 5)) + 1;
+    if (!options.includes(n)) options.push(n);
+  }
+  options.sort(() => Math.random() - 0.5);
+  const container = document.getElementById("options");
+  container.innerHTML = "";
+  options.forEach((val, i) => {
+    const el = document.createElement("div");
+    el.className = "block";
+    el.id = `opt${i}`;
+    el.textContent = val;
+    el.setAttribute("draggable", "true");
+    el.setAttribute("data-value", val);
+    el.ondragstart = drag;
+    container.appendChild(el);
+  });
+}
+
+function startTimer(duration = 30) {
+  let time = duration;
+  const timerDisplay = document.getElementById("timer-display");
+  if (!timerDisplay) return;
+  timerDisplay.textContent = time;
+  if (window.timerInterval) clearInterval(window.timerInterval);
+  window.timerInterval = setInterval(() => {
+    if (time > 0) {
+      time--;
+      timerDisplay.textContent = time;
+    }
+    if (time === 0) {
+      clearInterval(window.timerInterval);
+      gameOver = true;
+      document.getElementById("feedback").textContent = "💥 게임 오버! 다시 도전하시겠습니까?";
+      document.getElementById("btn-f1").style.display = "none";
+      document.getElementById("btn-f2").style.display = "none";
+      document.getElementById("retry-area").innerHTML = '<button onclick="restartGame()">🔁 다시 도전</button>';
+    }
+  }, 1000);
+}
+
+function generateNewFractions() {
+  const getRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+  const lcm = (a, b) => (a * b) / gcd(a, b);
+  const stage = parseInt(document.getElementById("score-display").textContent) + 1;
+  let maxCommonDen;
+  let minCommonDen = 2;
+  let isBossStage = false;
+
+  if (stage % 5 === 0 && stage >= 10) {
+    document.getElementById("game-area").classList.add("boss-stage");
+    document.getElementById("feedback").classList.add("boss-alert");
+    isBossStage = true;
+    minCommonDen = 50;
+    maxCommonDen = 120;
+    document.getElementById("feedback").textContent = "‼️ 보스 스테이지 ‼️ 큰 수에 주의하세요!";
+    startTimer(60);
+  } else {
+    document.getElementById("game-area").classList.remove("boss-stage");
+    document.getElementById("feedback").classList.remove("boss-alert");
+    startTimer();
+  }
+  if (!isBossStage) {
+    if (stage <= 3) maxCommonDen = 9;
+    else if (stage <= 7) maxCommonDen = 20;
+    else if (stage <= 9) maxCommonDen = 30;
+    else maxCommonDen = 50;
+  }
+  let n1, d1, n2, d2;
+  do {
+    d1 = getRandom(minCommonDen, maxCommonDen);
+    d2 = getRandom(minCommonDen, maxCommonDen);
+    n1 = getRandom(1, d1 - 1);
+    n2 = getRandom(1, d2 - 1);
+  } while (n1 / d1 === n2 / d2 || d1 === d2 || lcm(d1, d2) < minCommonDen || lcm(d1, d2) > maxCommonDen);
+  document.getElementById("fraction1_num").textContent = n1;
+  document.getElementById("fraction1_den").textContent = d1;
+  document.getElementById("fraction2_num").textContent = n2;
+  document.getElementById("fraction2_den").textContent = d2;
+}
+
+function restartGame() {
+  document.getElementById("score-display").textContent = "0";
+  document.getElementById("retry-area").innerHTML = "";
+  document.getElementById("feedback").textContent = "⚠️ 모든 칸에 숫자를 넣어주세요!";
+  gameOver = false;
+  clearDropZones();
+  startTimer();
+  generateNewFractions();
+  createOptions();
+}
+
+startTimer();
+generateNewFractions();
+createOptions();
+function setupClickHandlers() {
+  let selectedBlock = null;
+  document.querySelectorAll('.block').forEach(block => {
+    block.onclick = () => {
+      document.querySelectorAll('.block').forEach(b => b.classList.remove('selected'));
+      block.classList.add('selected');
+      selectedBlock = block;
+    };
+  });
+
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.onclick = () => {
+      if (selectedBlock) {
+        zone.textContent = selectedBlock.textContent;
+        zone.setAttribute("data-value", selectedBlock.getAttribute("data-value"));
+        checkFilledInputs();
+        selectedBlock.classList.remove('selected');
+        selectedBlock = null;
+      }
+    };
+  });
+}
+</script>
+</body>
+</html>
