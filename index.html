@@ -211,8 +211,6 @@ setupClickHandlers();
     }, 1000);
   } else {if (correct === 'equal') {
     feedback.textContent = "⏱ 분수가 같아 해제하지 마세요! 기다리세요.";
-    const scoreEl = document.getElementById("score-display");
-    scoreEl.textContent = parseInt(scoreEl.textContent) + 1;
   } else {
     lives--;
     document.getElementById("life-display").textContent = lives;
@@ -346,8 +344,8 @@ function generateNewFractions() {
     document.getElementById("game-area").classList.add("boss-stage");
     document.getElementById("feedback").classList.add("boss-alert");
     isBossStage = true;
-    minCommonDen = 50;
-    maxCommonDen = 120;
+    minCommonDen = 20;
+    maxCommonDen = 100;
     document.getElementById("feedback").textContent = "‼️ 보스 스테이지 ‼️ 큰 수에 주의하세요!";
     startTimer(60);
   } else {
@@ -362,12 +360,15 @@ function generateNewFractions() {
     else maxCommonDen = 50;
   }
   let n1, d1, n2, d2;
-  do {
+  let attempts = 0;
+do {
     d1 = getRandom(minCommonDen, maxCommonDen);
     d2 = getRandom(minCommonDen, maxCommonDen);
     n1 = getRandom(1, d1 - 1);
     n2 = getRandom(1, d2 - 1);
-  } while (n1 / d1 === n2 / d2 || d1 === d2 || lcm(d1, d2) < minCommonDen || lcm(d1, d2) > maxCommonDen);
+    attempts++;
+    if (attempts > 2000) break;
+  } while (n1 / d1 === n2 / d2 || d1 === d2 || (stage > 9 && (d1 / d2 === 2 || d2 / d1 === 2)) || lcm(d1, d2) < minCommonDen || lcm(d1, d2) > maxCommonDen);
   document.getElementById("fraction1_num").textContent = n1;
   document.getElementById("fraction1_den").textContent = d1;
   document.getElementById("fraction2_num").textContent = n2;
