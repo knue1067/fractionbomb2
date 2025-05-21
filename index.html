@@ -118,24 +118,21 @@
 </head>
 <body>
   <h1>💣 분수 폭탄 해제 작전 💣</h1>
-  <p>분수를 공통분모로 변환한 후, 더 큰 분수의 "폭탄 해제" 버튼을 눌러 진짜 폭탄을 해제하세요!</p>
-
-  
-    
-
+  <p>분수를 통분한 후, 더 큰 분수의 "폭탄 해제" 버튼을 눌러 폭탄을 해제하세요!</p>
+ 
   <div id="game-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-  <div style="display: flex; flex-direction: column; align-items: center;">
-    <div style="padding: 10px; background: #111; color: #0f0; border-radius: 10px; font-size: 20px;">⏳ 남은 시간: <span id="timer-display">--</span>s</div>
-    <div style="padding: 10px; background: #111; color: #0ff; border-radius: 10px; font-size: 20px; margin-top: 10px;">💣 해제한 폭탄 수: <span id="score-display">0</span></div>
-    <div style="padding: 10px; background: #111; color: #ff6666; border-radius: 10px; font-size: 20px; margin-top: 10px;">❤️ 목숨: <span id="life-display">3</span>
+  <div style="display: flex; flex-direction: row; align-items: center;">
+    <div style="padding: 10px; background: #111; color: #0ff; border-radius: 10px; font-size: 20px; margin-top: 10px;">💣 해제한 폭탄 수: <span id="score-display">0</span></div> 
+    <div style="padding: 8px; background: #111; color: #0f0; border-radius: 10px; font-size: 25px;">⏳남은 시간: <span id="timer-display">--</span>s</div>
+    <div style="padding: 10px; background: #111; color: #ff6666; border-radius: 10px; font-size: 20px; margin-top: 10px;">❤️ 남은 기회: <span id="life-display">3</span>
 </div>
   </div>
   <div style="display: flex; justify-content: start; gap: 60px; align-items: flex-start;">
-    <div style="display: flex; gap: 40px;">
+    <div style="display: flex; gap: 60px;">
       <div style="background-color: #006400; padding: 20px; border-radius: 15px;">
         <div>
           <div class="fraction" id="fraction1_num">1</div>
-          <hr style="width:60px; height: 3px; margin:2px auto; background-color: white; border: none;">
+          <hr style="width:60px; height: 3px; margin:2px auto; background-color: white; border: none;">      
           <div class="fraction" id="fraction1_den">2</div>
           <div class="drop-zone" id="f1_num" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
           <hr style="width:60px; height: 3px; margin:2px auto; background-color: white; border: none;">
@@ -154,7 +151,7 @@
       </div>
     </div>
     <div style="display: flex; flex-direction: column; align-items: center;">
-  <div id="options" style="display: flex; flex-wrap: wrap; width: 200px; justify-content: center;"></div>
+  <div id="options" style="display: flex; flex-wrap: wrap; width: 300px; justify-content: start;"></div>
   <div id="button-area" style="min-height: 100px; display: flex; flex-direction: column; gap: 10px; justify-content: center; align-items: center; margin-top: 10px;">
     <button id="btn-f1" style="background-color: #00cc00; color: white; display: none;" onclick="verifyLarger('f1')">💥 폭탄 해제</button>
     <button id="btn-f2" style="background-color: #FFD700; color: black; display: none;" onclick="verifyLarger('f2')">💥 폭탄 해제</button>
@@ -197,7 +194,7 @@ function verifyLarger(choice) {
   const f2Value = f2n / f2d;
   const correct = f1Value > f2Value ? "f1" : f2Value > f1Value ? "f2" : "equal";
   if (choice === correct) {
-    feedback.textContent = "🎉 정답입니다! 다음 문제로 넘어갑니다.";
+    feedback.textContent = "🎉 폭탄 해제 성공! 다음 문제로 넘어갑니다.";
     const scoreEl = document.getElementById("score-display");
     scoreEl.textContent = parseInt(scoreEl.textContent) + 1;
     setTimeout(() => {
@@ -220,7 +217,7 @@ setupClickHandlers();
     feedback.textContent = "💥 해제 실패! 다시 생각해보세요.";
     if (lives <= 0) {
       gameOver = true;
-      feedback.textContent = "💥 LIFE 소진! 게임 오버! 다시 도전하시겠습니까?";
+      feedback.textContent = "💥 게임 오버! 다시 도전하시겠습니까?";
       document.getElementById("btn-f1").style.display = "none";
       document.getElementById("btn-f2").style.display = "none";
       document.getElementById("retry-area").innerHTML = '<button onclick="restartGame()">🔁 다시 도전</button>';
@@ -306,7 +303,7 @@ function createOptions() {
     el.setAttribute("data-value", val);
     el.setAttribute("id", "option" + i);
     el.setAttribute("draggable", "true");
-    el.ondragstart = drag;
+    el.ondragstart = function(ev) { if (!gameOver) drag(ev); };
     container.appendChild(el);
   });
   setupClickHandlers();
@@ -323,7 +320,7 @@ function startTimer(duration = 30) {
       time--;
       timerDisplay.textContent = time;
     }
-    if (time === 0) {
+    if (time === 0 || gameOver) {
       clearInterval(window.timerInterval);
       gameOver = true;
       document.getElementById("feedback").textContent = "💥 게임 오버! 다시 도전하시겠습니까?";
@@ -394,6 +391,7 @@ function setupClickHandlers() {
   let selectedBlock = null;
   document.querySelectorAll('.block').forEach(block => {
     block.onclick = () => {
+      if (gameOver) return;
       document.querySelectorAll('.block').forEach(b => b.classList.remove('selected'));
       block.classList.add('selected');
       selectedBlock = block;
