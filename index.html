@@ -282,16 +282,8 @@ function createOptions() {
   options.sort(() => Math.random() - 0.5);
   const container = document.getElementById("options");
   container.innerHTML = "";
-  options.forEach((val, i) => {
-    const el = document.createElement("div");
-    el.className = "block";
-    el.id = `opt${i}`;
-    el.textContent = val;
-    el.setAttribute("draggable", "true");
-    el.setAttribute("data-value", val);
-    el.ondragstart = drag;
-    container.appendChild(el);
-  });
+  
+  setupClickHandlers();
 }
 
 function startTimer(duration = 30) {
