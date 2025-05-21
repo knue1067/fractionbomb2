@@ -206,6 +206,7 @@ function verifyLarger(choice) {
       generateNewFractions();
       createOptions();
 setupClickHandlers();
+setupClickHandlers();
     }, 1000);
   } else {
     feedback.textContent = correct === 'equal' ? "⏱ 분수가 같아 해제하지 마세요! 기다리세요." : "💥 해제 실패! 다시 생각해보세요.";
@@ -285,13 +286,14 @@ function createOptions() {
   options.forEach((val, i) => {
     const el = document.createElement("div");
     el.className = "block";
-    el.id = `opt${i}`;
     el.textContent = val;
-    el.setAttribute("draggable", "true");
     el.setAttribute("data-value", val);
+    el.setAttribute("id", "option" + i);
+    el.setAttribute("draggable", "true");
     el.ondragstart = drag;
     container.appendChild(el);
   });
+  setupClickHandlers();
 }
 
 function startTimer(duration = 30) {
